@@ -203,6 +203,17 @@ function absoluteUrl(url, baseUrl) {
   }
 }
 
+function toThumbnailUrl(url) {
+  if (!url) {
+    return null;
+  }
+
+  return String(url).replace(
+    /(https:\/\/imgr\.astagiudiziaria\.com\/)(?:512|1024|2048)(\/)/i,
+    "$1256$2",
+  );
+}
+
 function urlForPage(url, page) {
   const nextUrl = new URL(url);
   nextUrl.searchParams.set("page", String(page));
@@ -275,7 +286,7 @@ function parseBresciaAuctions(html, source = SOURCES[0]) {
     const fullText = `${attributesText} ${article.text()}`;
     const basePrice = extractLabeledPrice(fullText, "Prezzo base");
     const currentPrice = extractLabeledPrice(fullText, "Miglior offerta");
-    const image = absoluteUrl(article.find("img").first().attr("src"), source.url);
+    const image = toThumbnailUrl(absoluteUrl(article.find("img").first().attr("src"), source.url));
 
     if (!title || !url) {
       return;
@@ -342,7 +353,7 @@ function normalizeTypesenseDocument(document, source) {
     currentPriceDisplay: formatEuro(currentPrice),
     minimumOffer: parseEuro(document.minimumOffer),
     minimumOfferDisplay: formatEuro(document.minimumOffer),
-    image: Array.isArray(document.gallery) ? document.gallery[0] || null : null,
+    image: Array.isArray(document.gallery) ? toThumbnailUrl(document.gallery[0]) || null : null,
     status: cleanText(document.status),
     saleType: cleanText(document.sellType),
   };

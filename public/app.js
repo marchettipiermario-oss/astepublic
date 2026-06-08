@@ -7,7 +7,7 @@ const state = {
   selectedSourceIds: new Set(),
   sourceFilterInitialized: false,
   currentPage: 1,
-  pageSize: 40,
+  pageSize: 12,
 };
 
 const elements = {
@@ -29,6 +29,8 @@ const elements = {
   prevPage: document.querySelector("#prevPage"),
   nextPage: document.querySelector("#nextPage"),
 };
+
+let imageObserver = null;
 
 function formatDateTime(value) {
   if (!value) {
@@ -73,6 +75,53 @@ function imagePlaceholder() {
     </svg>`;
 
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function resetImageObserver() {
+  if (!("IntersectionObserver" in window)) {
+    imageObserver = null;
+    return;
+  }
+
+  if (imageObserver) {
+    imageObserver.disconnect();
+  }
+
+  imageObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        const image = entry.target;
+
+        if (entry.isIntersecting) {
+          if (!image.dataset.loaded && image.dataset.src) {
+            image.src = image.dataset.src;
+            image.dataset.loaded = "true";
+          }
+        } else if (image.dataset.loaded) {
+          image.src = imagePlaceholder();
+          image.dataset.loaded = "";
+        }
+      }
+    },
+    {
+      rootMargin: "120px 0px",
+      threshold: 0.01,
+    },
+  );
+}
+
+function observeAuctionImage(image) {
+  if (!("IntersectionObserver" in window)) {
+    image.src = image.dataset.src || imagePlaceholder();
+    image.dataset.loaded = "true";
+    return;
+  }
+
+  if (!imageObserver) {
+    resetImageObserver();
+  }
+
+  imageObserver.observe(image);
 }
 
 function formatPlace(city, province) {
@@ -221,6 +270,7 @@ function renderAuctions() {
   const pageStart = (state.currentPage - 1) * state.pageSize;
   const pageAuctions = visibleAuctions.slice(pageStart, pageStart + state.pageSize);
 
+  resetImageObserver();
   elements.cards.replaceChildren();
 
   for (const auction of pageAuctions) {
@@ -231,11 +281,15 @@ function renderAuctions() {
 
     card.href = auction.url;
     title.textContent = auction.title;
-    image.src = auction.image || imagePlaceholder();
+    image.src = imagePlaceholder();
+    image.dataset.src = auction.image || imagePlaceholder();
+    image.decoding = "async";
     image.alt = auction.title;
     image.addEventListener("error", () => {
       image.src = imagePlaceholder();
+      image.dataset.loaded = "true";
     });
+    observeAuctionImage(image);
 
     card.querySelector(".deadline").textContent =
       auction.deadlineDisplay || formatDateTime(auction.deadlineAt);
@@ -392,14 +446,14 @@ elements.clearAllSources.addEventListener("click", () => {
 elements.prevPage.addEventListener("click", () => {
   state.currentPage = Math.max(1, state.currentPage - 1);
   renderAuctions();
-  elements.cards.scrollIntoView({ behavior: "smooth", block: "start" });
+  elements.cards.scrollIntoView({ behavior: "auto", block: "start" });
 });
 
 elements.nextPage.addEventListener("click", () => {
   const totalPages = Math.max(1, Math.ceil(getVisibleAuctions().length / state.pageSize));
   state.currentPage = Math.min(totalPages, state.currentPage + 1);
   renderAuctions();
-  elements.cards.scrollIntoView({ behavior: "smooth", block: "start" });
+  elements.cards.scrollIntoView({ behavior: "auto", block: "start" });
 });
 
 loadAuctions();

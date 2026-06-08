@@ -16,8 +16,9 @@ I risultati vengono ordinati per data di scadenza e mostrano citta, prezzo base 
 prezzo attuale quando il dato e disponibile dalla sorgente.
 La pagina permette anche di selezionare quali citta/sorgenti includere o
 nascondere dall'elenco.
-Per evitare di caricare troppe immagini contemporaneamente, la lista mostra 40
-aste per pagina con controlli avanti/indietro.
+Per evitare di caricare troppe immagini contemporaneamente, la lista mostra 12
+aste per pagina con controlli avanti/indietro e carica/scarica le immagini in
+base alla visibilita durante lo scroll.
 
 ## Avvio locale
 
