@@ -53,6 +53,13 @@ sito. L'URL previsto e:
 https://marchettipiermario-oss.github.io/astepublic/
 ```
 
+Se GitHub Pages e configurato su **Deploy from branch**, la root del repository
+redirige automaticamente alla cartella dell'app:
+
+```text
+https://marchettipiermario-oss.github.io/astepublic/public/
+```
+
 Nota: GitHub Pages e statico, quindi usa lo snapshot incluso in
 `public/data/auctions-snapshot.js`. Per aggiornare lo snapshot bisogna
 rigenerarlo nel repository e fare un nuovo deploy.
