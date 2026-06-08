@@ -2,6 +2,8 @@ const state = {
   auctions: [],
   sources: [],
   query: "",
+  usingSnapshot: false,
+  snapshotReason: "",
 };
 
 const elements = {
@@ -145,17 +147,61 @@ function renderAuctions() {
 
 function renderNotice() {
   const failedSources = state.sources.filter((source) => source.status !== "ok");
+  const notices = [];
 
-  if (!failedSources.length) {
+  if (state.usingSnapshot) {
+    notices.push(
+      `Stai visualizzando uno snapshot statico delle aste perche i dati live non sono disponibili${state.snapshotReason ? ` (${state.snapshotReason})` : ""}. Avvia il server con "npm start" per aggiornare i risultati in tempo reale.`,
+    );
+  }
+
+  if (failedSources.length) {
+    notices.push(
+      `Alcune sorgenti non sono disponibili: ${failedSources
+        .map((source) => source.name)
+        .join(", ")}. I risultati mostrati includono solo le sorgenti caricate correttamente.`,
+    );
+  }
+
+  if (!notices.length) {
     elements.notice.hidden = true;
     elements.notice.textContent = "";
     return;
   }
 
   elements.notice.hidden = false;
-  elements.notice.textContent = `Alcune sorgenti non sono disponibili: ${failedSources
-    .map((source) => source.name)
-    .join(", ")}. I risultati mostrati includono solo le sorgenti caricate correttamente.`;
+  elements.notice.textContent = notices.join(" ");
+}
+
+async function fetchJson(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function loadLiveOrSnapshot(fresh) {
+  try {
+    const payload = await fetchJson(`api/auctions${fresh ? "?fresh=1" : ""}`);
+    if (!payload.auctions || payload.auctions.length === 0) {
+      throw new Error("nessuna asta live restituita");
+    }
+
+    return {
+      payload,
+      usingSnapshot: false,
+      snapshotReason: "",
+    };
+  } catch (error) {
+    const payload = await fetchJson("data/auctions-snapshot.json");
+    return {
+      payload,
+      usingSnapshot: true,
+      snapshotReason: error.message,
+    };
+  }
 }
 
 async function loadAuctions({ fresh = false } = {}) {
@@ -164,19 +210,20 @@ async function loadAuctions({ fresh = false } = {}) {
   elements.lastUpdated.textContent = "Caricamento dati...";
 
   try {
-    const response = await fetch(`/api/auctions${fresh ? "?fresh=1" : ""}`);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const payload = await response.json();
+    const { payload, usingSnapshot, snapshotReason } = await loadLiveOrSnapshot(fresh);
     state.auctions = payload.auctions || [];
     state.sources = payload.sources || [];
-    elements.lastUpdated.textContent = formatUpdatedAt(payload.fetchedAt, payload.cached);
+    state.usingSnapshot = usingSnapshot;
+    state.snapshotReason = snapshotReason;
+    elements.lastUpdated.textContent = state.usingSnapshot
+      ? formatUpdatedAt(payload.fetchedAt, true)
+      : formatUpdatedAt(payload.fetchedAt, payload.cached);
     renderSources();
     renderNotice();
     renderAuctions();
   } catch (error) {
+    state.usingSnapshot = false;
+    state.snapshotReason = "";
     elements.notice.hidden = false;
     elements.notice.textContent = `Impossibile caricare le aste: ${error.message}`;
     elements.lastUpdated.textContent = "Errore durante il caricamento.";
