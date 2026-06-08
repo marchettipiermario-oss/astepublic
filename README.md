@@ -41,6 +41,22 @@ Per dati aggiornati in tempo reale serve invece avviare il server con `npm start
 
 ## Pubblicazione online
 
+### Opzione piu semplice: GitHub Pages, solo browser
+
+Questa opzione pubblica la cartella `public/` e permette di visitare il sito da
+qualsiasi browser senza installare nulla.
+
+Dopo il merge su `main`, il workflow GitHub Pages pubblica automaticamente il
+sito. L'URL previsto e:
+
+```text
+https://marchettipiermario-oss.github.io/astepublic/
+```
+
+Nota: GitHub Pages e statico, quindi usa lo snapshot incluso in
+`public/data/auctions-snapshot.js`. Per aggiornare lo snapshot bisogna
+rigenerarlo nel repository e fare un nuovo deploy.
+
 ### Opzione consigliata: Render, con dati live
 
 Questa opzione pubblica anche il backend Node/Express, quindi il pulsante
