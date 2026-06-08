@@ -11,6 +11,7 @@ const SOURCES = [
     id: "brescia",
     name: "IVG Brescia",
     city: "Brescia",
+    province: "BS",
     url: "https://ivgbrescia.fallcoaste.it/index.html",
     type: "fallco-html",
   },
@@ -21,6 +22,32 @@ const SOURCES = [
     url: "https://www.ivgbergamo.it/ricerca/mobili",
     type: "typesense",
     visibleOn: 24,
+  },
+  {
+    id: "mantova",
+    name: "IVG Mantova",
+    city: "Mantova",
+    url: "https://www.ivgmantova.it/ricerca/mobili",
+    type: "typesense",
+    visibleOn: 3,
+  },
+  {
+    id: "cremona",
+    name: "IVG Cremona",
+    city: "Cremona",
+    province: "CR",
+    url: "https://ivgcremona.fallcoaste.it/ricerca.html?filter=macro%7C591%5Einput_categoria%7CBeni%20Mobili%5Eubicazione_dst%7C50%5Estato%7C1&page=1",
+    type: "fallco-html",
+    paginate: true,
+    maxPages: 30,
+  },
+  {
+    id: "monza",
+    name: "IVG Monza",
+    city: "Monza",
+    url: "https://www.ivgmonza.it/ricerca/mobili",
+    type: "typesense",
+    visibleOn: 35,
   },
   {
     id: "sivag",
@@ -152,6 +179,12 @@ function absoluteUrl(url, baseUrl) {
   }
 }
 
+function urlForPage(url, page) {
+  const nextUrl = new URL(url);
+  nextUrl.searchParams.set("page", String(page));
+  return nextUrl.toString();
+}
+
 async function fetchWithTimeout(url, options = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs || 15000);
@@ -233,7 +266,7 @@ function parseBresciaAuctions(html, source = SOURCES[0]) {
       description: buildBresciaDescription(article, title),
       url,
       city: source.city,
-      province: "BS",
+      province: source.province || null,
       category: cleanText(article.find(".category, .categoria").first().text()) || null,
       deadlineAt: parsedDeadline.iso,
       deadlineDisplay: parsedDeadline.display,
@@ -292,9 +325,39 @@ function normalizeTypesenseDocument(document, source) {
 }
 
 async function fetchBresciaAuctions(source) {
-  const response = await fetchWithTimeout(source.url);
-  const html = await response.text();
-  return parseBresciaAuctions(html, source);
+  if (!source.paginate) {
+    const response = await fetchWithTimeout(source.url);
+    const html = await response.text();
+    return parseBresciaAuctions(html, source);
+  }
+
+  const auctions = new Map();
+  const maxPages = source.maxPages || 20;
+
+  for (let page = 1; page <= maxPages; page += 1) {
+    const pageUrl = urlForPage(source.url, page);
+    const response = await fetchWithTimeout(pageUrl);
+    const html = await response.text();
+    const pageAuctions = parseBresciaAuctions(html, { ...source, url: pageUrl });
+
+    if (!pageAuctions.length) {
+      break;
+    }
+
+    let newItems = 0;
+    for (const auction of pageAuctions) {
+      if (!auctions.has(auction.id)) {
+        auctions.set(auction.id, auction);
+        newItems += 1;
+      }
+    }
+
+    if (newItems === 0) {
+      break;
+    }
+  }
+
+  return [...auctions.values()];
 }
 
 async function fetchTypesenseAuctions(source) {
