@@ -39,6 +39,37 @@ Se apri direttamente `public/index.html` o usi una preview statica senza backend
 la pagina mostra comunque uno snapshot incluso in `public/data/auctions-snapshot.js`.
 Per dati aggiornati in tempo reale serve invece avviare il server con `npm start`.
 
+## Pubblicazione online
+
+### Opzione consigliata: Render, con dati live
+
+Questa opzione pubblica anche il backend Node/Express, quindi il pulsante
+"Aggiorna dati" recupera le aste live.
+
+1. Crea un account su <https://render.com>.
+2. Fai push/merge del codice su GitHub.
+3. In Render scegli **New +** -> **Blueprint**.
+4. Collega questo repository.
+5. Render leggera automaticamente `render.yaml`.
+6. Conferma la creazione del servizio.
+7. Quando il deploy finisce, apri l'URL pubblico fornito da Render.
+
+Configurazione gia inclusa:
+
+- build: `npm ci`
+- start: `npm start`
+- health check: `/api/health`
+- Node: `>=20`
+
+### Opzione statica: GitHub Pages / Netlify / hosting statico
+
+Puoi pubblicare solo la cartella `public/`.
+In questo caso il sito e visibile online, ma usa lo snapshot statico incluso in
+`public/data/auctions-snapshot.js`; i dati live non vengono aggiornati dal
+backend.
+
+Usa questa opzione solo se ti basta vedere una copia statica delle aste.
+
 ## API
 
 La pagina usa l'endpoint:
