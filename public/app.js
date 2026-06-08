@@ -4,6 +4,8 @@ const state = {
   query: "",
   usingSnapshot: false,
   snapshotReason: "",
+  selectedSourceIds: new Set(),
+  sourceFilterInitialized: false,
 };
 
 const elements = {
@@ -17,6 +19,9 @@ const elements = {
   notice: document.querySelector("#notice"),
   refresh: document.querySelector("#refresh"),
   search: document.querySelector("#search"),
+  sourceFilters: document.querySelector("#sourceFilters"),
+  selectAllSources: document.querySelector("#selectAllSources"),
+  clearAllSources: document.querySelector("#clearAllSources"),
 };
 
 function formatDateTime(value) {
@@ -88,6 +93,56 @@ function renderSources() {
   }
 }
 
+function sourceLabel(source) {
+  if (source.id === "firenze") {
+    return "Firenze";
+  }
+
+  return source.name.replace(/^IVG\s+/i, "").replace(/^ISVEG\s+/i, "Firenze - ");
+}
+
+function initializeSourceFilters() {
+  if (state.sourceFilterInitialized) {
+    const availableIds = new Set(state.sources.map((source) => source.id));
+    state.selectedSourceIds = new Set(
+      [...state.selectedSourceIds].filter((sourceId) => availableIds.has(sourceId)),
+    );
+    return;
+  }
+
+  state.selectedSourceIds = new Set(state.sources.map((source) => source.id));
+  state.sourceFilterInitialized = true;
+}
+
+function renderSourceFilters() {
+  initializeSourceFilters();
+  elements.sourceFilters.replaceChildren();
+
+  for (const source of state.sources) {
+    const label = document.createElement("label");
+    label.className = "source-option";
+
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.value = source.id;
+    input.checked = state.selectedSourceIds.has(source.id);
+    input.addEventListener("change", () => {
+      if (input.checked) {
+        state.selectedSourceIds.add(source.id);
+      } else {
+        state.selectedSourceIds.delete(source.id);
+      }
+      renderAuctions();
+    });
+
+    const text = document.createElement("span");
+    text.textContent = `${sourceLabel(source)} (${source.count || 0})`;
+
+    label.append(input, text);
+    elements.sourceFilters.append(label);
+  }
+}
+
 function auctionMatchesQuery(auction) {
   if (!state.query) {
     return true;
@@ -109,8 +164,14 @@ function auctionMatchesQuery(auction) {
   return haystack.includes(state.query);
 }
 
+function auctionMatchesSelectedSources(auction) {
+  return state.selectedSourceIds.has(auction.sourceId);
+}
+
 function renderAuctions() {
-  const visibleAuctions = state.auctions.filter(auctionMatchesQuery);
+  const visibleAuctions = state.auctions
+    .filter(auctionMatchesSelectedSources)
+    .filter(auctionMatchesQuery);
   elements.cards.replaceChildren();
 
   for (const auction of visibleAuctions) {
@@ -239,6 +300,7 @@ async function loadAuctions({ fresh = false } = {}) {
     elements.lastUpdated.textContent = state.usingSnapshot
       ? formatUpdatedAt(payload.fetchedAt, true)
       : formatUpdatedAt(payload.fetchedAt, payload.cached);
+    renderSourceFilters();
     renderSources();
     renderNotice();
     renderAuctions();
@@ -260,5 +322,17 @@ elements.search.addEventListener("input", (event) => {
 });
 
 elements.refresh.addEventListener("click", () => loadAuctions({ fresh: true }));
+
+elements.selectAllSources.addEventListener("click", () => {
+  state.selectedSourceIds = new Set(state.sources.map((source) => source.id));
+  renderSourceFilters();
+  renderAuctions();
+});
+
+elements.clearAllSources.addEventListener("click", () => {
+  state.selectedSourceIds = new Set();
+  renderSourceFilters();
+  renderAuctions();
+});
 
 loadAuctions();

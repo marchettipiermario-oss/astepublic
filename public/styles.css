@@ -73,6 +73,7 @@ h1 {
 
 .toolbar,
 .summary,
+.source-filter,
 .notice,
 .empty,
 .source-card,
@@ -133,6 +134,69 @@ button:hover {
 button:disabled {
   cursor: progress;
   opacity: 0.65;
+}
+
+.source-filter {
+  margin-top: 18px;
+  padding: 18px 20px;
+}
+
+.source-filter__header {
+  align-items: start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.source-filter h2 {
+  font-size: 1.05rem;
+  margin: 0 0 4px;
+}
+
+.source-filter p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.source-filter__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.source-filter__actions button {
+  background: #eef1f6;
+  color: #3a4556;
+  min-height: 38px;
+  padding: 0 14px;
+}
+
+.source-filter__actions button:hover {
+  background: #dfe6f0;
+}
+
+.source-filter__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.source-option {
+  align-items: center;
+  background: #f8fafd;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 800;
+  gap: 8px;
+  padding: 10px 13px;
+}
+
+.source-option input {
+  accent-color: var(--primary);
+  height: 16px;
+  width: 16px;
 }
 
 .status-grid {
@@ -386,7 +450,8 @@ button:disabled {
   }
 
   .toolbar,
-  .summary {
+  .summary,
+  .source-filter__header {
     display: block;
   }
 
@@ -397,6 +462,10 @@ button:disabled {
 
   .summary p {
     margin-top: 10px;
+  }
+
+  .source-filter__actions {
+    margin-top: 12px;
   }
 
   .status-grid {
@@ -421,5 +490,14 @@ button:disabled {
   .cards-grid,
   .auction-facts {
     grid-template-columns: 1fr;
+  }
+
+  .source-filter__actions,
+  .source-option {
+    width: 100%;
+  }
+
+  .source-filter__actions button {
+    flex: 1;
   }
 }

@@ -5,12 +5,17 @@ Web app per aggregare in un'unica pagina le aste pubblicate da:
 - [IVG Brescia / Fallco Aste](https://ivgbrescia.fallcoaste.it/index.html)
 - [IVG Bergamo](https://www.ivgbergamo.it/ricerca/mobili)
 - [IVG Mantova](https://www.ivgmantova.it/ricerca/mobili)
+- [IVG Como](https://www.ivgcomo.it/ricerca/mobili)
 - [IVG Cremona / Fallco Aste](https://ivgcremona.fallcoaste.it/ricerca.html?filter=macro%7C591%5Einput_categoria%7CBeni%20Mobili%5Eubicazione_dst%7C50%5Estato%7C1&page=1)
+- [IVG Bologna](https://www.ivgbologna.it/ricerca/mobili)
 - [IVG Monza](https://www.ivgmonza.it/ricerca/mobili)
+- [ISVEG Firenze](https://www.ivgfirenze.it/ricerca/mobili)
 - [SIVAG](https://www.sivag.com/ricerca/mobili)
 
 I risultati vengono ordinati per data di scadenza e mostrano citta, prezzo base e
 prezzo attuale quando il dato e disponibile dalla sorgente.
+La pagina permette anche di selezionare quali citta/sorgenti includere o
+nascondere dall'elenco.
 
 ## Avvio locale
 
@@ -53,8 +58,9 @@ GET /api/auctions?fresh=1
 
 ## Note sulle sorgenti
 
-- IVG Bergamo, IVG Mantova, IVG Monza e SIVAG vengono interrogati tramite
-  l'indice Typesense pubblico usato dai rispettivi frontend.
+- IVG Bergamo, IVG Mantova, IVG Como, IVG Bologna, IVG Monza, ISVEG Firenze e
+  SIVAG vengono interrogati tramite l'indice Typesense pubblico usato dai
+  rispettivi frontend.
 - IVG Brescia e IVG Cremona vengono letti dal markup HTML pubblico delle pagine
   indicate, estraendo le schede asta presenti e deduplicandole. Cremona viene
   letta anche sulle pagine successive dei risultati.

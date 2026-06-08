@@ -16,8 +16,9 @@
         <p class="eyebrow">Aste giudiziarie online</p>
         <h1>Tutte le aste in un'unica pagina</h1>
         <p class="hero__text">
-          Prodotti da Brescia, Bergamo, Mantova, Cremona, Monza e SIVAG ordinati per
-          scadenza, con citta, prezzo base e prezzo attuale quando disponibile.
+          Prodotti da Brescia, Bergamo, Mantova, Como, Cremona, Bologna, Monza,
+          Firenze e SIVAG ordinati per scadenza, con citta, prezzo base e prezzo
+          attuale quando disponibile.
         </p>
       </div>
     </header>
@@ -39,6 +40,20 @@
           <small>aste trovate</small>
         </div>
         <p id="lastUpdated">Caricamento dati...</p>
+      </section>
+
+      <section class="source-filter" aria-label="Citta da visualizzare">
+        <div class="source-filter__header">
+          <div>
+            <h2>Citta da visualizzare</h2>
+            <p>Seleziona le citta/sorgenti da includere nell'elenco aste.</p>
+          </div>
+          <div class="source-filter__actions">
+            <button id="selectAllSources" type="button">Tutte</button>
+            <button id="clearAllSources" type="button">Nessuna</button>
+          </div>
+        </div>
+        <div class="source-filter__options" id="sourceFilters"></div>
       </section>
 
       <section class="notice" id="notice" hidden></section>

@@ -32,6 +32,14 @@ const SOURCES = [
     visibleOn: 3,
   },
   {
+    id: "como",
+    name: "IVG Como",
+    city: "Como",
+    url: "https://www.ivgcomo.it/ricerca/mobili",
+    type: "typesense",
+    visibleOn: 28,
+  },
+  {
     id: "cremona",
     name: "IVG Cremona",
     city: "Cremona",
@@ -42,12 +50,28 @@ const SOURCES = [
     maxPages: 30,
   },
   {
+    id: "bologna",
+    name: "IVG Bologna",
+    city: "Bologna",
+    url: "https://www.ivgbologna.it/ricerca/mobili",
+    type: "typesense",
+    visibleOn: 25,
+  },
+  {
     id: "monza",
     name: "IVG Monza",
     city: "Monza",
     url: "https://www.ivgmonza.it/ricerca/mobili",
     type: "typesense",
     visibleOn: 35,
+  },
+  {
+    id: "firenze",
+    name: "ISVEG Firenze",
+    city: "Firenze",
+    url: "https://www.ivgfirenze.it/ricerca/mobili",
+    type: "typesense",
+    visibleOn: 16,
   },
   {
     id: "sivag",
