@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aggregatore aste online</title>
+    <meta
+      name="description"
+      content="Aggregatore online delle aste IVG Brescia, IVG Bergamo e SIVAG ordinate per data di scadenza."
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="hero__content">
+        <p class="eyebrow">Aste giudiziarie online</p>
+        <h1>Tutte le aste in un'unica pagina</h1>
+        <p class="hero__text">
+          Prodotti da IVG Brescia, IVG Bergamo e SIVAG ordinati per scadenza, con citta,
+          prezzo base e prezzo attuale quando disponibile.
+        </p>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="toolbar" aria-label="Filtri e aggiornamento">
+        <div class="toolbar__search">
+          <label for="search">Cerca prodotto, citta o sorgente</label>
+          <input id="search" type="search" placeholder="Es. muletto, Segrate, Brescia..." />
+        </div>
+        <button id="refresh" type="button">Aggiorna dati</button>
+      </section>
+
+      <section class="status-grid" id="sourceStatus" aria-label="Stato sorgenti"></section>
+
+      <section class="summary" aria-live="polite">
+        <div>
+          <span id="totalCount">0</span>
+          <small>aste trovate</small>
+        </div>
+        <p id="lastUpdated">Caricamento dati...</p>
+      </section>
+
+      <section class="notice" id="notice" hidden></section>
+
+      <section class="auction-list" aria-label="Elenco aste">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Scadenza</th>
+                <th>Prodotto</th>
+                <th>Citta</th>
+                <th>Prezzo base</th>
+                <th>Prezzo attuale</th>
+                <th>Sorgente</th>
+              </tr>
+            </thead>
+            <tbody id="auctionRows"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="emptyState" hidden>
+          Nessuna asta trovata con i filtri correnti.
+        </div>
+      </section>
+    </main>
+
+    <template id="sourceCardTemplate">
+      <article class="source-card">
+        <div>
+          <h2></h2>
+          <a target="_blank" rel="noopener noreferrer">Apri sito</a>
+        </div>
+        <p></p>
+      </article>
+    </template>
+
+    <template id="auctionRowTemplate">
+      <tr>
+        <td data-label="Scadenza">
+          <strong class="deadline"></strong>
+        </td>
+        <td data-label="Prodotto">
+          <a class="title" target="_blank" rel="noopener noreferrer"></a>
+          <p class="meta"></p>
+        </td>
+        <td data-label="Citta">
+          <span class="city"></span>
+        </td>
+        <td data-label="Prezzo base" class="price base-price"></td>
+        <td data-label="Prezzo attuale" class="price current-price"></td>
+        <td data-label="Sorgente">
+          <span class="source"></span>
+        </td>
+      </tr>
+    </template>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
