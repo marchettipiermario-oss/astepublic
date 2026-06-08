@@ -6,6 +6,8 @@ const state = {
   snapshotReason: "",
   selectedSourceIds: new Set(),
   sourceFilterInitialized: false,
+  currentPage: 1,
+  pageSize: 40,
 };
 
 const elements = {
@@ -22,6 +24,10 @@ const elements = {
   sourceFilters: document.querySelector("#sourceFilters"),
   selectAllSources: document.querySelector("#selectAllSources"),
   clearAllSources: document.querySelector("#clearAllSources"),
+  paginationControls: document.querySelector("#paginationControls"),
+  paginationInfo: document.querySelector("#paginationInfo"),
+  prevPage: document.querySelector("#prevPage"),
+  nextPage: document.querySelector("#nextPage"),
 };
 
 function formatDateTime(value) {
@@ -132,6 +138,7 @@ function renderSourceFilters() {
       } else {
         state.selectedSourceIds.delete(source.id);
       }
+      resetPagination();
       renderAuctions();
     });
 
@@ -168,13 +175,55 @@ function auctionMatchesSelectedSources(auction) {
   return state.selectedSourceIds.has(auction.sourceId);
 }
 
-function renderAuctions() {
-  const visibleAuctions = state.auctions
+function compareAuctionsByDeadline(a, b) {
+  const firstDeadline = Number(a.deadlineSort || Number.MAX_SAFE_INTEGER);
+  const secondDeadline = Number(b.deadlineSort || Number.MAX_SAFE_INTEGER);
+
+  if (firstDeadline !== secondDeadline) {
+    return firstDeadline - secondDeadline;
+  }
+
+  return String(a.title || "").localeCompare(String(b.title || ""), "it");
+}
+
+function getVisibleAuctions() {
+  return state.auctions
     .filter(auctionMatchesSelectedSources)
-    .filter(auctionMatchesQuery);
+    .filter(auctionMatchesQuery)
+    .sort(compareAuctionsByDeadline);
+}
+
+function resetPagination() {
+  state.currentPage = 1;
+}
+
+function renderPagination(totalAuctions, totalPages) {
+  if (totalAuctions === 0) {
+    elements.paginationControls.hidden = true;
+    return;
+  }
+
+  const start = (state.currentPage - 1) * state.pageSize + 1;
+  const end = Math.min(start + state.pageSize - 1, totalAuctions);
+
+  elements.paginationControls.hidden = false;
+  elements.paginationInfo.textContent = `Mostro ${start}-${end} di ${totalAuctions.toLocaleString(
+    "it-IT",
+  )} aste - pagina ${state.currentPage} di ${totalPages}`;
+  elements.prevPage.disabled = state.currentPage === 1;
+  elements.nextPage.disabled = state.currentPage === totalPages;
+}
+
+function renderAuctions() {
+  const visibleAuctions = getVisibleAuctions();
+  const totalPages = Math.max(1, Math.ceil(visibleAuctions.length / state.pageSize));
+  state.currentPage = Math.min(state.currentPage, totalPages);
+  const pageStart = (state.currentPage - 1) * state.pageSize;
+  const pageAuctions = visibleAuctions.slice(pageStart, pageStart + state.pageSize);
+
   elements.cards.replaceChildren();
 
-  for (const auction of visibleAuctions) {
+  for (const auction of pageAuctions) {
     const card = elements.cardTemplate.content.firstElementChild.cloneNode(true);
     const title = card.querySelector(".title");
     const image = card.querySelector(".auction-image");
@@ -204,6 +253,7 @@ function renderAuctions() {
 
   elements.totalCount.textContent = visibleAuctions.length.toLocaleString("it-IT");
   elements.emptyState.hidden = visibleAuctions.length > 0;
+  renderPagination(visibleAuctions.length, totalPages);
 }
 
 function renderNotice() {
@@ -297,6 +347,7 @@ async function loadAuctions({ fresh = false } = {}) {
     state.sources = payload.sources || [];
     state.usingSnapshot = usingSnapshot;
     state.snapshotReason = snapshotReason;
+    resetPagination();
     elements.lastUpdated.textContent = state.usingSnapshot
       ? formatUpdatedAt(payload.fetchedAt, true)
       : formatUpdatedAt(payload.fetchedAt, payload.cached);
@@ -318,6 +369,7 @@ async function loadAuctions({ fresh = false } = {}) {
 
 elements.search.addEventListener("input", (event) => {
   state.query = event.target.value.trim().toLowerCase();
+  resetPagination();
   renderAuctions();
 });
 
@@ -325,14 +377,29 @@ elements.refresh.addEventListener("click", () => loadAuctions({ fresh: true }));
 
 elements.selectAllSources.addEventListener("click", () => {
   state.selectedSourceIds = new Set(state.sources.map((source) => source.id));
+  resetPagination();
   renderSourceFilters();
   renderAuctions();
 });
 
 elements.clearAllSources.addEventListener("click", () => {
   state.selectedSourceIds = new Set();
+  resetPagination();
   renderSourceFilters();
   renderAuctions();
+});
+
+elements.prevPage.addEventListener("click", () => {
+  state.currentPage = Math.max(1, state.currentPage - 1);
+  renderAuctions();
+  elements.cards.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+elements.nextPage.addEventListener("click", () => {
+  const totalPages = Math.max(1, Math.ceil(getVisibleAuctions().length / state.pageSize));
+  state.currentPage = Math.min(totalPages, state.currentPage + 1);
+  renderAuctions();
+  elements.cards.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 loadAuctions();
