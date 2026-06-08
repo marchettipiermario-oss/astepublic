@@ -151,7 +151,7 @@ function renderNotice() {
 
   if (state.usingSnapshot) {
     notices.push(
-      `Stai visualizzando uno snapshot statico delle aste perche i dati live non sono disponibili${state.snapshotReason ? ` (${state.snapshotReason})` : ""}. Avvia il server con "npm start" per aggiornare i risultati in tempo reale.`,
+      `Stai visualizzando uno snapshot statico delle aste perche i dati live non sono disponibili${state.snapshotReason ? ` (${state.snapshotReason})` : ""}. Se vuoi aggiornare i risultati in tempo reale, avvia l'app con "npm start" e apri http://localhost:3000.`,
     );
   }
 
@@ -182,6 +182,32 @@ async function fetchJson(url) {
   return response.json();
 }
 
+function getEmbeddedSnapshot() {
+  if (window.AUCTION_SNAPSHOT?.auctions?.length) {
+    return window.AUCTION_SNAPSHOT;
+  }
+
+  return null;
+}
+
+async function loadSnapshot(reason) {
+  const embeddedSnapshot = getEmbeddedSnapshot();
+  if (embeddedSnapshot) {
+    return {
+      payload: embeddedSnapshot,
+      usingSnapshot: true,
+      snapshotReason: reason,
+    };
+  }
+
+  const payload = await fetchJson("data/auctions-snapshot.json");
+  return {
+    payload,
+    usingSnapshot: true,
+    snapshotReason: reason,
+  };
+}
+
 async function loadLiveOrSnapshot(fresh) {
   try {
     const payload = await fetchJson(`api/auctions${fresh ? "?fresh=1" : ""}`);
@@ -195,12 +221,7 @@ async function loadLiveOrSnapshot(fresh) {
       snapshotReason: "",
     };
   } catch (error) {
-    const payload = await fetchJson("data/auctions-snapshot.json");
-    return {
-      payload,
-      usingSnapshot: true,
-      snapshotReason: error.message,
-    };
+    return loadSnapshot(error.message);
   }
 }
 

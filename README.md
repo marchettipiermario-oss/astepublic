@@ -24,6 +24,10 @@ Durante lo sviluppo:
 npm run dev
 ```
 
+Se apri direttamente `public/index.html` o usi una preview statica senza backend,
+la pagina mostra comunque uno snapshot incluso in `public/data/auctions-snapshot.js`.
+Per dati aggiornati in tempo reale serve invece avviare il server con `npm start`.
+
 ## API
 
 La pagina usa l'endpoint:
