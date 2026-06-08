@@ -40,6 +40,8 @@ const REQUEST_HEADERS = {
     "Mozilla/5.0 (compatible; AuctionAggregator/1.0; +https://github.com/marchettipiermario-oss/astepublic)",
 };
 
+const ITALY_TIME_ZONE = "Europe/Rome";
+
 function cleanText(value) {
   return String(value || "")
     .replace(/\s+/g, " ")
@@ -76,6 +78,43 @@ function formatEuro(value) {
   }).format(Number(value));
 }
 
+function getTimeZoneOffsetMs(date, timeZone) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  })
+    .formatToParts(date)
+    .reduce((accumulator, part) => {
+      if (part.type !== "literal") {
+        accumulator[part.type] = part.value;
+      }
+      return accumulator;
+    }, {});
+
+  const zonedAsUtc = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second),
+  );
+
+  return zonedAsUtc - date.getTime();
+}
+
+function zonedDateTimeToUtcMs({ year, month, day, hour, minute }, timeZone = ITALY_TIME_ZONE) {
+  const utcGuess = Date.UTC(year, month - 1, day, hour, minute);
+  const offset = getTimeZoneOffsetMs(new Date(utcGuess), timeZone);
+  return utcGuess - offset;
+}
+
 function parseItalianDate(value) {
   const match = String(value || "").match(
     /(\d{2})\/(\d{2})\/(\d{4})(?:\s+h?\.?\s*|\s+)(\d{1,2}):(\d{2})/i,
@@ -85,14 +124,14 @@ function parseItalianDate(value) {
   }
 
   const [, day, month, year, hour, minute] = match;
-  const sortValue = Date.UTC(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hour),
-    Number(minute),
-  );
-  const iso = `${year}-${month}-${day}T${hour.padStart(2, "0")}:${minute}:00+01:00`;
+  const sortValue = zonedDateTimeToUtcMs({
+    year: Number(year),
+    month: Number(month),
+    day: Number(day),
+    hour: Number(hour),
+    minute: Number(minute),
+  });
+  const iso = new Date(sortValue).toISOString();
   return {
     iso,
     sortValue,
