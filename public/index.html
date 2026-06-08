@@ -44,21 +44,7 @@
       <section class="notice" id="notice" hidden></section>
 
       <section class="auction-list" aria-label="Elenco aste">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Scadenza</th>
-                <th>Prodotto</th>
-                <th>Citta</th>
-                <th>Prezzo base</th>
-                <th>Prezzo attuale</th>
-                <th>Sorgente</th>
-              </tr>
-            </thead>
-            <tbody id="auctionRows"></tbody>
-          </table>
-        </div>
+        <div class="cards-grid" id="auctionCards"></div>
         <div class="empty" id="emptyState" hidden>
           Nessuna asta trovata con i filtri correnti.
         </div>
@@ -75,24 +61,33 @@
       </article>
     </template>
 
-    <template id="auctionRowTemplate">
-      <tr>
-        <td data-label="Scadenza">
+    <template id="auctionCardTemplate">
+      <a class="auction-card" target="_blank" rel="noopener noreferrer">
+        <div class="auction-card__media">
+          <img class="auction-image" alt="" loading="lazy" />
           <strong class="deadline"></strong>
-        </td>
-        <td data-label="Prodotto">
-          <a class="title" target="_blank" rel="noopener noreferrer"></a>
+        </div>
+        <div class="auction-card__body">
+          <div class="auction-card__badges">
+            <span class="city"></span>
+            <span class="source"></span>
+          </div>
+          <h2 class="title"></h2>
+          <p class="description"></p>
+          <dl class="auction-facts">
+            <div>
+              <dt>Prezzo base</dt>
+              <dd class="base-price"></dd>
+            </div>
+            <div>
+              <dt>Prezzo attuale</dt>
+              <dd class="current-price"></dd>
+            </div>
+          </dl>
           <p class="meta"></p>
-        </td>
-        <td data-label="Citta">
-          <span class="city"></span>
-        </td>
-        <td data-label="Prezzo base" class="price base-price"></td>
-        <td data-label="Prezzo attuale" class="price current-price"></td>
-        <td data-label="Sorgente">
-          <span class="source"></span>
-        </td>
-      </tr>
+          <span class="open-link">Apri pagina vendita</span>
+        </div>
+      </a>
     </template>
 
     <script src="/app.js" defer></script>

@@ -5,8 +5,8 @@ const state = {
 };
 
 const elements = {
-  rows: document.querySelector("#auctionRows"),
-  rowTemplate: document.querySelector("#auctionRowTemplate"),
+  cards: document.querySelector("#auctionCards"),
+  cardTemplate: document.querySelector("#auctionCardTemplate"),
   sourceStatus: document.querySelector("#sourceStatus"),
   sourceTemplate: document.querySelector("#sourceCardTemplate"),
   totalCount: document.querySelector("#totalCount"),
@@ -50,6 +50,18 @@ function priceOrDash(value) {
   return value || '<span class="muted">Non disponibile</span>';
 }
 
+function imagePlaceholder() {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="640" height="420" viewBox="0 0 640 420">
+      <rect width="640" height="420" fill="#eaf2ff"/>
+      <circle cx="320" cy="176" r="58" fill="#b8cff0"/>
+      <path d="M196 314l86-96 58 64 38-42 78 74H196z" fill="#8db0df"/>
+      <text x="320" y="372" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#0a4081">Foto non disponibile</text>
+    </svg>`;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
 function formatPlace(city, province) {
   if (city && province) {
     return `${city} (${province})`;
@@ -86,6 +98,7 @@ function auctionMatchesQuery(auction) {
     auction.sourceName,
     auction.category,
     auction.saleType,
+    auction.description,
   ]
     .filter(Boolean)
     .join(" ")
@@ -96,25 +109,34 @@ function auctionMatchesQuery(auction) {
 
 function renderAuctions() {
   const visibleAuctions = state.auctions.filter(auctionMatchesQuery);
-  elements.rows.replaceChildren();
+  elements.cards.replaceChildren();
 
   for (const auction of visibleAuctions) {
-    const row = elements.rowTemplate.content.firstElementChild.cloneNode(true);
-    const title = row.querySelector(".title");
+    const card = elements.cardTemplate.content.firstElementChild.cloneNode(true);
+    const title = card.querySelector(".title");
+    const image = card.querySelector(".auction-image");
+    const description = auction.description || auction.title;
+
+    card.href = auction.url;
     title.textContent = auction.title;
-    title.href = auction.url;
+    image.src = auction.image || imagePlaceholder();
+    image.alt = auction.title;
+    image.addEventListener("error", () => {
+      image.src = imagePlaceholder();
+    });
 
-    row.querySelector(".deadline").textContent =
+    card.querySelector(".deadline").textContent =
       auction.deadlineDisplay || formatDateTime(auction.deadlineAt);
-    row.querySelector(".meta").textContent = [auction.category, auction.saleType]
+    card.querySelector(".description").textContent = description;
+    card.querySelector(".meta").textContent = [auction.category, auction.saleType]
       .filter(Boolean)
-      .join(" · ");
-    row.querySelector(".city").textContent = formatPlace(auction.city, auction.province);
-    row.querySelector(".base-price").innerHTML = priceOrDash(auction.basePriceDisplay);
-    row.querySelector(".current-price").innerHTML = priceOrDash(auction.currentPriceDisplay);
-    row.querySelector(".source").textContent = auction.sourceName;
+      .join(" - ");
+    card.querySelector(".city").textContent = formatPlace(auction.city, auction.province);
+    card.querySelector(".base-price").innerHTML = priceOrDash(auction.basePriceDisplay);
+    card.querySelector(".current-price").innerHTML = priceOrDash(auction.currentPriceDisplay);
+    card.querySelector(".source").textContent = auction.sourceName;
 
-    elements.rows.append(row);
+    elements.cards.append(card);
   }
 
   elements.totalCount.textContent = visibleAuctions.length.toLocaleString("it-IT");

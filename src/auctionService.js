@@ -183,6 +183,17 @@ function extractLabeledPrice(text, label) {
   return match ? parseEuro(match[1]) : null;
 }
 
+function buildBresciaDescription(article, title) {
+  const text = cleanText(article.text())
+    .replace(/Visite:\s*\d+/gi, "")
+    .replace(/Prezzo base €:\s*[\d.]+,\d{1,2}/gi, "")
+    .replace(/Miglior offerta €:\s*[\d.]+,\d{1,2}/gi, "")
+    .replace(/Termine\s*:\s*[\dhms\s/.:]+/gi, "")
+    .replace(/Inizio\s*:\s*[\dhms\s/.:]+/gi, "");
+
+  return cleanText(text).replace(title, "").trim() || title;
+}
+
 function parseBresciaAuctions(html, source = SOURCES[0]) {
   const $ = cheerio.load(html);
   const auctions = new Map();
@@ -219,6 +230,7 @@ function parseBresciaAuctions(html, source = SOURCES[0]) {
       sourceName: source.name,
       sourceUrl: source.url,
       title,
+      description: buildBresciaDescription(article, title),
       url,
       city: source.city,
       province: "BS",
