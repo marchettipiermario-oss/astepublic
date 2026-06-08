@@ -75,6 +75,7 @@ function formatEuro(value) {
   return new Intl.NumberFormat("it-IT", {
     style: "currency",
     currency: "EUR",
+    useGrouping: true,
   }).format(Number(value));
 }
 
